@@ -31,8 +31,11 @@ ansible-galaxy role install Panzer1119.keepalived-setup
   vars:
     install_keepalived: true
     configure_keepalived: true
-    use_zfs_storage_driver: true
-    use_zfs_volume_plugin: true
+    keepalived_instance_name: "AdGuardHome"
+    keepalived_virtual_ipaddresses:
+      - "127.0.0.1/24"
+    keepalived_track_process: true
+    keepalived_track_process_name: "AdGuardHome"
   roles:
     - ansible-role-keepalived-setup
 ```
