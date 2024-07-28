@@ -11,7 +11,7 @@
 - name: "Set Keepalived vrrp_instance_state and priority based on host role"
   set_fact:
     keepalived_vrrp_instance_state: "{{ 'MASTER' if inventory_hostname in groups['master'] else 'BACKUP' }}"
-    keepalived_priority: "{{ 150 if inventory_hostname in groups['master'] else 100 }}"
+    keepalived_priority: "{{ hostvars[inventory_hostname].keepalived_priority | default(150 if inventory_hostname in groups['master'] else 100) }}"
 
 - name: "Set Keepalived unicast_src_ip"
   set_fact:
