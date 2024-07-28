@@ -22,7 +22,7 @@ vrrp_instance {{ keepalived_instance_name }} {
 
   unicast_src_ip {{ keepalived_unicast_src_ip }}
   unicast_peer {
-    {{ keepalived_unicast_peers | join('\n    ') }}
+    {{ keepalived_unicast_peers | sort | join('\n    ') }}
   }
 
   authentication {
@@ -31,7 +31,7 @@ vrrp_instance {{ keepalived_instance_name }} {
   }
 
   virtual_ipaddress {
-    {{ keepalived_virtual_ipaddress | join('\n    ') }}
+    {{ keepalived_virtual_ipaddress | sort | join('\n    ') }}
   }
 {% if keepalived_track_process %}
 
