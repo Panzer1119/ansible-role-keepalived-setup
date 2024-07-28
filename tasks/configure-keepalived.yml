@@ -30,6 +30,11 @@
   set_fact:
     keepalived_unicast_peers: "{{ keepalived_unicast_peers | difference([keepalived_unicast_src_ip]) }}"
 
+- name: "Set Keepalived track_process and track_process_name on a per host basis"
+  set_fact:
+    keepalived_track_process: "{{ hostvars[inventory_hostname].keepalived_track_process | default(keepalived_track_process) }}"
+    keepalived_track_process_name: "{{ hostvars[inventory_hostname].keepalived_track_process_name | default(keepalived_track_process_name) }}"
+
 - name: "Create Keepalived configuration file"
   template:
     src: "keepalived.conf.j2"
