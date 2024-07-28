@@ -1,0 +1,13 @@
+galaxy_info:
+  role_name: "keepalived_setup"
+  author: "Panzer1119"
+  description: "Sets up Keepalived"
+  license: "Apache-2.0"
+  min_ansible_version: "2.9"
+  platforms:
+    - name: "Debian"
+      versions:
+        - "all"
+  galaxy_tags:
+    - "system"
+    - "keepalived"

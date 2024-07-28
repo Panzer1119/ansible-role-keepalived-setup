@@ -1,0 +1,9 @@
+---
+# Main tasks file
+- include_tasks:
+    file: "install-keepalived.yml"
+  when: "install_keepalived"
+
+- include_tasks:
+    file: "configure-keepalived.yml"
+  when: "configure_keepalived"

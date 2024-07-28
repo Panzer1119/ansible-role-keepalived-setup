@@ -1,0 +1,9 @@
+---
+# Handlers for Keepalived setup
+- name: "Restart keepalived service"
+  ansible.builtin.systemd:
+    daemon_reload: "yes"
+    name: "keepalived"
+    enabled: "yes"
+    state: "restarted"
+  become: "yes"

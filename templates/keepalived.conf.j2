@@ -1,0 +1,42 @@
+# roles/keepalived/templates/keepalived.conf.j2
+
+! Configuration File for Keepalived
+
+global_defs {
+  router_id {{ keepalived_router_id }}
+}
+
+{% if keepalived_track_process %}
+vrrp_track_process track_{{ keepalived_track_process_name | lower | replace('-', '_') }} {
+  process {{ keepalived_track_process_name }}
+  weight 50
+}
+
+{% endif %}
+vrrp_instance {{ keepalived_instance_name }} {
+  state {{ keepalived_vrrp_instance_state }}
+  interface {{ keepalived_interface }}
+  virtual_router_id {{ keepalived_virtual_router_id }}
+  priority {{ keepalived_priority }}
+  advert_int {{ keepalived_advert_interval }}
+
+  unicast_src_ip {{ keepalived_unicast_src_ip }}
+  unicast_peer {
+    {{ keepalived_unicast_peers | join('\n    ') }}
+  }
+
+  authentication {
+    auth_type PASS
+    auth_pass {{ keepalived_authentication_password }}
+  }
+
+  virtual_ipaddress {
+    {{ keepalived_virtual_ipaddress | join('\n    ') }}
+  }
+{% if keepalived_track_process %}
+
+  track_process {
+    track_{{ keepalived_track_process_name | lower | replace('-', '_') }}
+  }
+{% endif %}
+}

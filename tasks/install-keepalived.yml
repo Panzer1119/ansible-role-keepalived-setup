@@ -1,0 +1,6 @@
+---
+- name: "Install Keepalived"
+  ansible.builtin.apt:
+    name: "keepalived"
+    state: "present"
+  become: "yes"

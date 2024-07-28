@@ -1,0 +1,15 @@
+---
+# Default variables for Keepalived setup
+install_keepalived: "true"
+configure_keepalived: "true"
+
+# Keepalived config
+#keepalived_instance_name: "Set this to the name of the instance"
+keepalived_interface: "eth0"
+keepalived_virtual_router_id: "1"
+keepalived_advert_interval: "1"
+keepalived_authentication_password: "password"
+keepalived_virtual_ipaddress: []
+
+keepalived_track_process: "false"
+#keepalived_track_process_name: "Set this to the name of the process to track"

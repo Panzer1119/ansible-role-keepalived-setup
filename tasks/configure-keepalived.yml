@@ -1,0 +1,38 @@
+---
+- name: "Gather host facts"
+  setup:
+    gather_subset:
+      - "network"
+
+- name: "Set Keepalived router_id"
+  set_fact:
+    keepalived_router_id: "{{ ansible_hostname }}"
+
+- name: "Set Keepalived vrrp_instance_state and priority based on host role"
+  set_fact:
+    keepalived_vrrp_instance_state: "{{ 'MASTER' if inventory_hostname in groups['master'] else 'BACKUP' }}"
+    keepalived_priority: "{{ 150 if inventory_hostname in groups['master'] else 100 }}"
+
+- name: "Set Keepalived unicast_src_ip"
+  set_fact:
+    keepalived_unicast_src_ip: "{{ hostvars[inventory_hostname]['ansible_host'] }}"
+
+- name: "Extract IPv4 addresses from master and backup groups"
+  set_fact:
+    keepalived_unicast_peers_master: "{{ groups['master'] | map('extract', hostvars, ['ansible_host']) | select('string') | list }}"
+    keepalived_unicast_peers_backup: "{{ groups['backup'] | map('extract', hostvars, ['ansible_host']) | select('string') | list }}"
+
+- name: "Concatenate unicast_peers_master and unicast_peers_backup"
+  set_fact:
+    keepalived_unicast_peers: "{{ keepalived_unicast_peers_master + keepalived_unicast_peers_backup }}"
+
+- name: "Remove current host from unicast_peers"
+  set_fact:
+    keepalived_unicast_peers: "{{ keepalived_unicast_peers | difference([keepalived_unicast_src_ip]) }}"
+
+- name: "Create Keepalived configuration file"
+  template:
+    src: "keepalived.conf.j2"
+    dest: "/etc/keepalived/keepalived.conf"
+  become: "yes"
+  notify: "Restart keepalived service"
