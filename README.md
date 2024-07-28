@@ -18,7 +18,7 @@ ansible-galaxy role install Panzer1119.keepalived-setup
 - `keepalived_virtual_router_id`: Virtual router ID for Keepalived (default: `1`)
 - `keepalived_advert_interval`: Advert interval for Keepalived (default: `1`)
 - `keepalived_authentication_password`: Authentication password for Keepalived (default: `"password"`)
-- `keepalived_virtual_ipaddresses`: List of virtual IP addresses for Keepalived (default: `[]`)
+- `keepalived_virtual_ipaddress`: List of virtual IP addresses for Keepalived (default: `[]`)
 
 - `keepalived_track_process`: Whether to track a process for Keepalived (default: `false`)
 - `keepalived_track_process_name`: Process name to track for Keepalived
@@ -32,7 +32,7 @@ ansible-galaxy role install Panzer1119.keepalived-setup
     install_keepalived: true
     configure_keepalived: true
     keepalived_instance_name: "AdGuardHome"
-    keepalived_virtual_ipaddresses:
+    keepalived_virtual_ipaddress:
       - "127.0.0.1/24"
     keepalived_track_process: true
     keepalived_track_process_name: "AdGuardHome"
