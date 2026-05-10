@@ -13,8 +13,10 @@ ansible-galaxy role install Panzer1119.keepalived-setup
 - `install_keepalived`: Whether to install Keepalived (default: `true`)
 - `configure_keepalived`: Whether to configure Keepalived (default: `true`)
 
+- `keepalived_instance_name`: Global instance name prefix (default: `"VRRP"`). Used to auto-generate instance names if not specified (e.g., `"VRRP_eth0"`).
+
 - `keepalived_instances`: **Required.** List of VRRP instances. Each instance supports:
-  - `name`: Instance name (required)
+  - `name`: Instance name (optional, defaults to `keepalived_instance_name_interface`)
   - `interface`: Network interface (required)
   - `virtual_ipaddress`: List of virtual IP addresses (required, at least one)
   - `virtual_router_id`: Virtual router ID (default: `1`)
@@ -38,15 +40,14 @@ ansible-galaxy role install Panzer1119.keepalived-setup
   vars:
     install_keepalived: true
     configure_keepalived: true
+    keepalived_instance_name: "AdGuardHome"
     keepalived_instances:
-      - name: "AdGuardHome_eth0"
-        interface: "eth0"
+      - interface: "eth0"
         virtual_router_id: 51
         virtual_ipaddress:
           - "192.168.10.10/24"
           - "192.168.10.11/24"
-      - name: "AdGuardHome_eth1"
-        interface: "eth1"
+      - interface: "eth1"
         virtual_router_id: 52
         virtual_ipaddress:
           - "10.20.30.10/24"
@@ -57,6 +58,8 @@ ansible-galaxy role install Panzer1119.keepalived-setup
   roles:
     - ansible-role-keepalived-setup
 ```
+
+Note: The instances above will be named `AdGuardHome_eth0` and `AdGuardHome_eth1` respectively.
 
 Test it with the following command:
 

@@ -40,7 +40,7 @@
     keepalived_instances_effective: "{{ keepalived_instances_effective | default([]) + [_instance_normalized] }}"
   vars:
     _instance_normalized:
-      name: "{{ item.name }}"
+      name: "{{ item.name | default(keepalived_instance_name + '_' + item.interface) }}"
       interface: "{{ item.interface }}"
       virtual_router_id: "{{ item.virtual_router_id | default(keepalived_virtual_router_id | default(1)) }}"
       advert_interval: "{{ item.advert_interval | default(keepalived_advert_interval | default(1)) }}"

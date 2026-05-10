@@ -3,6 +3,9 @@
 install_keepalived: "true"
 configure_keepalived: "true"
 
+# Global Keepalived instance name (used to auto-generate instance names if not specified)
+keepalived_instance_name: "VRRP"
+
 # Keepalived configuration - list of VRRP instances
 # keepalived_instances:
 #   - name: "VRRP_1"
