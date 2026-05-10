@@ -24,8 +24,11 @@ ansible-galaxy role install Panzer1119.keepalived-setup
   - `state`: VRRP state, `MASTER` or `BACKUP` (computed from inventory groups)
   - `advert_interval`: Advertisement interval (default: `1`)
   - `authentication_password`: Auth password (default: `"password"`)
-  - `unicast_src_ip`: Unicast source IP (computed from `ansible_host`)
   - `unicast_peers`: List of peer IPs (computed from master/backup groups)
+
+- `keepalived_unicast_src_ips`: Dictionary mapping instance names to unicast source IPs per host (optional). If not specified, defaults to `ansible_host` for all instances.
+  - Example: `{ "AdGuardHome_eth0": "192.168.10.5", "AdGuardHome_eth1": "10.20.30.5" }`
+  - Unicast peers are auto-computed from the `master` and `backup` inventory groups
 
 - `keepalived_advert_interval`: Default advertisement interval for all instances (default: `1`)
 - `keepalived_authentication_password`: Default authentication password for all instances (default: `"password"`)
@@ -60,6 +63,23 @@ ansible-galaxy role install Panzer1119.keepalived-setup
 ```
 
 Note: The instances above will be named `AdGuardHome_eth0` and `AdGuardHome_eth1` respectively.
+
+### Specifying unicast IPs per instance per host
+
+In your inventory file (e.g., `host_vars/node1.yml`), define a dict mapping instance names to their unicast source IPs:
+
+```yaml
+# inventory/host_vars/node1.yml
+keepalived_unicast_src_ips:
+  "AdGuardHome_eth0": "192.168.10.5"
+  "AdGuardHome_eth1": "10.20.30.5"
+```
+
+If not specified, the role defaults to using `ansible_host` for all instances.
+
+### Unicast peers auto-computation
+
+The role automatically computes `unicast_peers` for each instance from the `master` and `backup` inventory groups. The current host is automatically excluded from the peer list.
 
 Test it with the following command:
 

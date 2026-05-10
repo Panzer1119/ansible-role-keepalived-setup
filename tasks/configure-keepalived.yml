@@ -13,34 +13,43 @@
     keepalived_vrrp_instance_state: "{{ 'MASTER' if inventory_hostname in groups['master'] else 'BACKUP' }}"
     keepalived_priority: "{{ hostvars[inventory_hostname].keepalived_priority | default(150 if inventory_hostname in groups['master'] else 100) }}"
 
-- name: "Set Keepalived unicast_src_ip"
+- name: "Set Keepalived unicast_src_ips"
   set_fact:
-    keepalived_unicast_src_ip: "{{ hostvars[inventory_hostname]['ansible_host'] }}"
-
-- name: "Extract IPv4 addresses from master and backup groups"
-  set_fact:
-    keepalived_unicast_peers_master: "{{ groups['master'] | map('extract', hostvars, ['ansible_host']) | select('string') | list }}"
-    keepalived_unicast_peers_backup: "{{ groups['backup'] | map('extract', hostvars, ['ansible_host']) | select('string') | list }}"
-
-- name: "Concatenate unicast_peers_master and unicast_peers_backup"
-  set_fact:
-    keepalived_unicast_peers: "{{ keepalived_unicast_peers_master + keepalived_unicast_peers_backup }}"
-
-- name: "Remove current host from unicast_peers"
-  set_fact:
-    keepalived_unicast_peers: "{{ keepalived_unicast_peers | difference([keepalived_unicast_src_ip]) }}"
+    keepalived_unicast_src_ips: "{{ hostvars[inventory_hostname].get('keepalived_unicast_src_ips', {}) }}"
 
 - name: "Set Keepalived track_process and track_process_name on a per host basis"
   set_fact:
     keepalived_track_process: "{{ hostvars[inventory_hostname].keepalived_track_process | default(keepalived_track_process) }}"
     keepalived_track_process_name: "{{ hostvars[inventory_hostname].keepalived_track_process_name | default(keepalived_track_process_name | default('')) }}"
 
-- name: "Normalize Keepalived instances with defaults"
+- name: "Normalize Keepalived instances with per-instance unicast computation"
   set_fact:
     keepalived_instances_effective: "{{ keepalived_instances_effective | default([]) + [_instance_normalized] }}"
   vars:
+    _instance_name: "{{ item.name | default(keepalived_instance_name + '_' + item.interface) }}"
+    _unicast_src_ip: "{{ keepalived_unicast_src_ips.get(_instance_name, ansible_host) }}"
+    # For each host, use instance-specific unicast IP if set, otherwise fallback to their ansible_host
+    _unicast_peers_master: |-
+      {%- set peers = [] -%}
+      {%- for host in groups['master'] -%}
+        {%- set peer_ip = hostvars[host].get('keepalived_unicast_src_ips', {}).get(_instance_name, hostvars[host].get('ansible_host')) -%}
+        {%- if peer_ip -%}
+          {%- set _ = peers.append(peer_ip) -%}
+        {%- endif -%}
+      {%- endfor -%}
+      {{ peers }}
+    _unicast_peers_backup: |-
+      {%- set peers = [] -%}
+      {%- for host in groups['backup'] -%}
+        {%- set peer_ip = hostvars[host].get('keepalived_unicast_src_ips', {}).get(_instance_name, hostvars[host].get('ansible_host')) -%}
+        {%- if peer_ip -%}
+          {%- set _ = peers.append(peer_ip) -%}
+        {%- endif -%}
+      {%- endfor -%}
+      {{ peers }}
+    _unicast_peers: "{{ (_unicast_peers_master + _unicast_peers_backup) | difference([_unicast_src_ip]) }}"
     _instance_normalized:
-      name: "{{ item.name | default(keepalived_instance_name + '_' + item.interface) }}"
+      name: "{{ _instance_name }}"
       interface: "{{ item.interface }}"
       virtual_router_id: "{{ item.virtual_router_id | default(keepalived_virtual_router_id | default(1)) }}"
       advert_interval: "{{ item.advert_interval | default(keepalived_advert_interval | default(1)) }}"
@@ -48,8 +57,8 @@
       virtual_ipaddress: "{{ item.virtual_ipaddress | default([]) }}"
       state: "{{ item.state | default(keepalived_vrrp_instance_state) }}"
       priority: "{{ item.priority | default(keepalived_priority) }}"
-      unicast_src_ip: "{{ item.unicast_src_ip | default(keepalived_unicast_src_ip) }}"
-      unicast_peers: "{{ item.unicast_peers | default(keepalived_unicast_peers) }}"
+      unicast_src_ip: "{{ _unicast_src_ip }}"
+      unicast_peers: "{{ item.unicast_peers | default(_unicast_peers) }}"
   loop: "{{ keepalived_instances }}"
 
 - name: "Validate Keepalived instances"
