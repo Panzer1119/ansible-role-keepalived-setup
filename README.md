@@ -13,13 +13,20 @@ ansible-galaxy role install Panzer1119.keepalived-setup
 - `install_keepalived`: Whether to install Keepalived (default: `true`)
 - `configure_keepalived`: Whether to configure Keepalived (default: `true`)
 
-- `keepalived_instance_name`: Keepalived instance name
-- `keepalived_interface`: Network interface for Keepalived (default: `"eth0"`)
-- `keepalived_virtual_router_id`: Virtual router ID for Keepalived (default: `1`)
-- `keepalived_advert_interval`: Advert interval for Keepalived (default: `1`)
-- `keepalived_authentication_password`: Authentication password for Keepalived (default: `"password"`)
-- `keepalived_virtual_ipaddress`: List of virtual IP addresses for Keepalived (default: `[]`)
+- `keepalived_instances`: **Required.** List of VRRP instances. Each instance supports:
+  - `name`: Instance name (required)
+  - `interface`: Network interface (required)
+  - `virtual_ipaddress`: List of virtual IP addresses (required, at least one)
+  - `virtual_router_id`: Virtual router ID (default: `1`)
+  - `priority`: Priority (uses computed MASTER/BACKUP priority)
+  - `state`: VRRP state, `MASTER` or `BACKUP` (computed from inventory groups)
+  - `advert_interval`: Advertisement interval (default: `1`)
+  - `authentication_password`: Auth password (default: `"password"`)
+  - `unicast_src_ip`: Unicast source IP (computed from `ansible_host`)
+  - `unicast_peers`: List of peer IPs (computed from master/backup groups)
 
+- `keepalived_advert_interval`: Default advertisement interval for all instances (default: `1`)
+- `keepalived_authentication_password`: Default authentication password for all instances (default: `"password"`)
 - `keepalived_track_process`: Whether to track a process for Keepalived (default: `false`)
 - `keepalived_track_process_name`: Process name to track for Keepalived
 
@@ -31,9 +38,20 @@ ansible-galaxy role install Panzer1119.keepalived-setup
   vars:
     install_keepalived: true
     configure_keepalived: true
-    keepalived_instance_name: "AdGuardHome"
-    keepalived_virtual_ipaddress:
-      - "127.0.0.1/24"
+    keepalived_instances:
+      - name: "AdGuardHome_eth0"
+        interface: "eth0"
+        virtual_router_id: 51
+        virtual_ipaddress:
+          - "192.168.10.10/24"
+          - "192.168.10.11/24"
+      - name: "AdGuardHome_eth1"
+        interface: "eth1"
+        virtual_router_id: 52
+        virtual_ipaddress:
+          - "10.20.30.10/24"
+    keepalived_advert_interval: "1"
+    keepalived_authentication_password: "password"
     keepalived_track_process: true
     keepalived_track_process_name: "AdGuardHome"
   roles:

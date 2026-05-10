@@ -33,7 +33,34 @@
 - name: "Set Keepalived track_process and track_process_name on a per host basis"
   set_fact:
     keepalived_track_process: "{{ hostvars[inventory_hostname].keepalived_track_process | default(keepalived_track_process) }}"
-    keepalived_track_process_name: "{{ hostvars[inventory_hostname].keepalived_track_process_name | default(keepalived_track_process_name) }}"
+    keepalived_track_process_name: "{{ hostvars[inventory_hostname].keepalived_track_process_name | default(keepalived_track_process_name | default('')) }}"
+
+- name: "Normalize Keepalived instances with defaults"
+  set_fact:
+    keepalived_instances_effective: "{{ keepalived_instances_effective | default([]) + [_instance_normalized] }}"
+  vars:
+    _instance_normalized:
+      name: "{{ item.name }}"
+      interface: "{{ item.interface }}"
+      virtual_router_id: "{{ item.virtual_router_id | default(keepalived_virtual_router_id | default(1)) }}"
+      advert_interval: "{{ item.advert_interval | default(keepalived_advert_interval | default(1)) }}"
+      authentication_password: "{{ item.authentication_password | default(keepalived_authentication_password | default('password')) }}"
+      virtual_ipaddress: "{{ item.virtual_ipaddress | default([]) }}"
+      state: "{{ item.state | default(keepalived_vrrp_instance_state) }}"
+      priority: "{{ item.priority | default(keepalived_priority) }}"
+      unicast_src_ip: "{{ item.unicast_src_ip | default(keepalived_unicast_src_ip) }}"
+      unicast_peers: "{{ item.unicast_peers | default(keepalived_unicast_peers) }}"
+  loop: "{{ keepalived_instances }}"
+
+- name: "Validate Keepalived instances"
+  assert:
+    that:
+      - item.name is defined
+      - item.interface is defined
+      - item.virtual_ipaddress is defined
+      - item.virtual_ipaddress | length > 0
+    fail_msg: "Each Keepalived instance needs name, interface, and at least one virtual_ipaddress entry."
+  loop: "{{ keepalived_instances_effective }}"
 
 - name: "Create Keepalived configuration file"
   template:
